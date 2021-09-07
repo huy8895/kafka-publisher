@@ -1,9 +1,6 @@
 package com.example.kafkapublisher;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.*;
-
-import java.util.Arrays;
 
 @EqualsAndHashCode(callSuper = true)
 @Builder

@@ -7,27 +7,35 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.SendResult;
+import org.springframework.util.concurrent.ListenableFuture;
+import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.web.bind.annotation.*;
 
 @SpringBootApplication
 @RestController
 @Slf4j
 public class KafkaPublisherApplication {
-    private final String TOPIC = "huy-test";
     @Autowired
     private KafkaTemplate<String, Object> template;
 
     @GetMapping("/publish/{name}")
     public String publishMessage(@PathVariable String name){
-        log.info("publish message: {}", name);
-        template.send(TOPIC,"Hi " + name);
+        log.info("publish message: {} -> to topic: {}", name, KafkaConfig.TOPIC_1);
+        template.send(KafkaConfig.TOPIC_1,"Hi " + name);
         return "Data published";
     }
 
     @PostMapping("/publishJson")
-    public String publishJsonMessage(@RequestBody User user) throws JsonProcessingException {
-        log.info("publish json message: {}", user);
-        template.send(TOPIC, user);
+    public String publishJsonMessage(@RequestBody User user) {
+        log.info("publish json message: \n{} -> to topic: {}", user, KafkaConfig.TOPIC_2);
+        final var future = template.send(KafkaConfig.TOPIC_2, user);
+        future.addCallback(result -> {
+                    log.info("send json message success: {}", result);
+                },
+                throwable -> {
+                    log.error("exception: ", throwable);
+                });
         return "Data json published";
     }
 

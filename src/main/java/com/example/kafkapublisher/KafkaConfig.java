@@ -1,5 +1,6 @@
 package com.example.kafkapublisher;
 
+import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -16,6 +17,9 @@ import java.util.Map;
 @Configuration
 public class KafkaConfig {
 
+    public static final String TOPIC_1 = "topic-1";
+    public static final String TOPIC_2 = "topic-2";
+
     @Bean
     public ProducerFactory<String, Object> producerFactory(){
         Map<String, Object> configs = new HashMap<>();
@@ -28,5 +32,15 @@ public class KafkaConfig {
     @Bean
     public KafkaTemplate<String, Object> kafkaTemplate(){
         return new KafkaTemplate<>(producerFactory());
+    }
+
+    @Bean
+    public NewTopic topic1() {
+        return new NewTopic(TOPIC_1, 1, (short) 1);
+    }
+
+    @Bean
+    public NewTopic topic2() {
+        return new NewTopic(TOPIC_2, 1, (short) 1);
     }
 }
