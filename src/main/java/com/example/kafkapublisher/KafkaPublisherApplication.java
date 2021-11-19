@@ -7,9 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.SendResult;
-import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.web.bind.annotation.*;
 
 @SpringBootApplication
@@ -27,9 +24,9 @@ public class KafkaPublisherApplication {
     }
 
     @PostMapping("/publishJson")
-    public String publishJsonMessage(@RequestBody User user) {
-        log.info("publish json message: \n{} -> to topic: {}", user, KafkaConfig.TOPIC_2);
-        final var future = template.send(KafkaConfig.TOPIC_2, user);
+    public String publishJsonMessage(@RequestBody Object dto, @RequestParam("topic") String topic) {
+        log.info("publish json message: \n{} -> to topic: {}", dto, topic);
+        final var future = template.send(topic, dto);
         future.addCallback(result -> {
                     log.info("send json message success: {}", result);
                 },
