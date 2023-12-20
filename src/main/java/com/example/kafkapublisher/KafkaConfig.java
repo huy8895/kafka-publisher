@@ -29,6 +29,7 @@ import java.util.Map;
 @Slf4j
 public class KafkaConfig {
 
+    public static final String DEFAULT_TOPIC = "test.topic.default";
     @Value("${kafka.bootstrap-servers}")
     private String BOOTSTRAP_SERVERS;
 
@@ -66,7 +67,7 @@ public class KafkaConfig {
 
     @Bean
     public NewTopic topic() {
-        return TopicBuilder.name("M4S_DEFAULT")
+        return TopicBuilder.name(DEFAULT_TOPIC)
                            .build();
     }
 
