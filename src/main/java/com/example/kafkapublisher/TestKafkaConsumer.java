@@ -33,6 +33,7 @@ public class TestKafkaConsumer {
   @Value("${kafka.bootstrap-servers}")
   private String BOOTSTRAP_SERVERS;
 
+  @Bean
   public Consumer<String, String> consumer() {
     Properties consumerProperties = new Properties();
     consumerProperties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
@@ -51,8 +52,6 @@ public class TestKafkaConsumer {
       @RequestParam long offset) {
     log.info("getMessageFromOffset() called with: [{}], [{}], [{}]", topic, partition, offset);
     Consumer<String, String> consumer = consumer();
-
-    AtomicReference<ConsumerRecord<String, String>> record = new AtomicReference<>();
     TopicPartition topicPartition = new TopicPartition(topic, partition);
     List<TopicPartition> partitions = new ArrayList<>();
     partitions.add(topicPartition);
@@ -60,14 +59,7 @@ public class TestKafkaConsumer {
     consumer.assign(Collections.singletonList(topicPartition));
     consumer.seek(topicPartition, offset);
     ConsumerRecords<String, String> messages = consumer.poll(Duration.ofMillis(1000));
-
-    for (ConsumerRecord<String, String> message : messages) {
-      record.set(message);
-      break;
-    }
-    consumer.close();
-    record.get().timestamp();
-    log.info("record: {}", record);
-    return record.get().value();
+    final List<ConsumerRecord<String, String>> records = messages.records(topicPartition);
+    return records.get(0).value();
   }
 }
