@@ -56,7 +56,6 @@ public class TestKafkaConsumer {
     List<TopicPartition> partitions = new ArrayList<>();
     partitions.add(topicPartition);
     consumer.assign(partitions);
-    consumer.assign(Collections.singletonList(topicPartition));
     consumer.seek(topicPartition, offset);
     ConsumerRecords<String, String> messages = consumer.poll(Duration.ofMillis(1000));
     final List<ConsumerRecord<String, String>> records = messages.records(topicPartition);
