@@ -41,6 +41,9 @@ public class TestKafkaConsumer {
         StringDeserializer.class.getName());
     consumerProperties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
         StringDeserializer.class.getName());
+
+    //config này để khi poll về chỉ lấy 5 message thôi.
+    consumerProperties.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 5);
     consumerProperties.put(ConsumerConfig.GROUP_ID_CONFIG, "ConsumerGroup1");
     KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProperties);
     return consumer;
@@ -57,8 +60,11 @@ public class TestKafkaConsumer {
     partitions.add(topicPartition);
     consumer.assign(partitions);
     consumer.seek(topicPartition, offset);
-    ConsumerRecords<String, String> messages = consumer.poll(Duration.ofMillis(1000));
+
+    //config thời gian chờ nếu chưa có message tại offset chỉ định.
+    ConsumerRecords<String, String> messages = consumer.poll(Duration.ofMillis(100));
     final List<ConsumerRecord<String, String>> records = messages.records(topicPartition);
+    log.info("records size: [{}]", records.size());
     return records.get(0).value();
   }
 }
