@@ -40,6 +40,7 @@ public class KafkaCustomer<K, V> {
                 for (ConsumerRecord<K, V> kvConsumerRecord : poll) {
                     if (kvConsumerRecord.offset() == topicOffset) {
                         consumerRecord = kvConsumerRecord;
+                        break;
                     }
                 }
                 consumer.commitSync();
