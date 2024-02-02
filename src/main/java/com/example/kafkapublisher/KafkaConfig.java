@@ -1,11 +1,14 @@
 package com.example.kafkapublisher;
 
+import java.util.Properties;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.config.SaslConfigs;
 import org.apache.kafka.common.security.plain.PlainLoginModule;
@@ -29,6 +32,7 @@ import java.util.Map;
 @Slf4j
 public class KafkaConfig {
 
+    public static final String DEFAULT_TOPIC = "test.topic.default";
     @Value("${kafka.bootstrap-servers}")
     private String BOOTSTRAP_SERVERS;
 
@@ -66,7 +70,7 @@ public class KafkaConfig {
 
     @Bean
     public NewTopic topic() {
-        return TopicBuilder.name("M4S_DEFAULT")
+        return TopicBuilder.name(DEFAULT_TOPIC)
                            .build();
     }
 
@@ -80,5 +84,25 @@ public class KafkaConfig {
         final var factory = new ConcurrentKafkaListenerContainerFactory<String, String>();
         factory.setConsumerFactory(consumerFactory());
         return factory;
+    }
+
+    @Bean
+    public Consumer<String, String> consumer() {
+        Properties consumerProperties = new Properties();
+        consumerProperties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+        consumerProperties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
+            StringDeserializer.class.getName());
+        consumerProperties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
+            StringDeserializer.class.getName());
+
+        //config này để khi poll về chỉ lấy 5 message thôi.
+        consumerProperties.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 5);
+        consumerProperties.put(ConsumerConfig.GROUP_ID_CONFIG, "ConsumerGroup1");
+        return new KafkaConsumer<>(consumerProperties);
+    }
+
+    @Bean
+    public KafkaCustomer<String, String> kafkaCustomer(Consumer<String, String> consumer){
+        return new KafkaCustomer<>(consumer, 30, 30);
     }
 }

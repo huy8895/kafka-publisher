@@ -1,6 +1,7 @@
 package com.example.kafkapublisher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
@@ -11,6 +12,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.GenericMessage;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -112,10 +117,20 @@ public class KafkaPublisherApplication {
                          .collect(Collectors.toList());
     }
 
-    @GetMapping("/publish/{name}")
-    public String publishMessage(@PathVariable String name){
-        log.info("publish message: {} -> to topic: {}", name, "M4S_DEFAULT");
-        template.send("M4S_DEFAULT","Hi " + name);
+    @GetMapping("/publish")
+    public String publishMessage(@RequestParam String topic,
+        @RequestParam String message){
+        log.info("publish message:  -> to topic: {} ,[{}]", topic, message);
+        Message<String> messageKafka = MessageBuilder
+            .withPayload(message)
+            .setHeader(KafkaHeaders.MESSAGE_KEY, UUID.randomUUID().toString())
+            .setHeader(KafkaHeaders.TOPIC, topic)
+            .setHeader(KafkaHeaders.RECEIVED_TOPIC, topic)
+            .build();
+
+        template.send(messageKafka)
+            .addCallback(result -> log.info("send json message success: {}", result),
+                throwable -> log.error("exception: ", throwable));
         return "Data published";
     }
 
